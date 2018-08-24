@@ -32,11 +32,13 @@ info    = logging.info
 
 def run( options ):
     options = opt_validate( options )
+    #options.sfactor, called a "scaling factor", defaults to 1.0, as defined in MACS/bin/macs2
     scaling_factor = options.sfactor
     pseudo_depth = 1.0/scaling_factor   # not an actual depth, but its reciprocal, a trick to override SPMR while necessary.
 
     info("Read and build treatment bedGraph...")
     tbio = BedGraphIO.bedGraphIO(options.tfile)
+    #tbtrack is of type IO.BedGraph.bedGraphTrackI
     tbtrack = tbio.build_bdgtrack()
 
     info("Read and build control bedGraph...")
@@ -44,11 +46,13 @@ def run( options ):
     cbtrack = cbio.build_bdgtrack()
 
     info("Build scoreTrackII...")
+    #sbtrack is of type IO.ScoreTrack.scoreTrackII
     sbtrack = tbtrack.make_scoreTrackII_for_macs( cbtrack, depth1 = pseudo_depth, depth2 = pseudo_depth )
     if abs(scaling_factor-1) > 1e-6:
         # Only for the case while your input is SPMR from MACS2 callpeak; Let's override SPMR.
         info("Values in your input bedGraph files will be multiplied by %f ..." % scaling_factor)
         sbtrack.change_normalization_method( ord('M') ) # a hack to override SPMR
+    #options.pseudocount defaults to 0.0, as defined in MACS/bin/macs2
     sbtrack.set_pseudocount( options.pseudocount )
 
     already_processed_method_list = []
